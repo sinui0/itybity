@@ -86,6 +86,20 @@
 //! `itybty` supports `#[no_std]` by disabling the default features.
 //!
 //! - `std`: Enables `alloc`, for use of `Vec` and `String` types.
+//!
+//! # License
+//!
+//! Licensed under either of
+//!
+//! * [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+//! * [MIT license](http://opensource.org/licenses/MIT)
+//!
+//! at your option.
+//!
+//! # Contribution
+//!
+//! Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you,
+//! as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
 #![cfg_attr(not(test), no_std)]
 #![deny(missing_docs, unreachable_pub, unused_must_use)]
