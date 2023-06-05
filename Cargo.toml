@@ -7,16 +7,7 @@ description = "An itty bitty crate providing bit iterators and bit iterator acce
 repository = "https://github.com/sinui0/itybity"
 license = "MIT OR Apache-2.0"
 categories = ["data-structures", "encoding", "no-std::no-alloc"]
-keywords = [
-    "bit",
-    "bool",
-    "iterator",
-    "iter",
-    "bitvec",
-    "no_std",
-    "bitstring",
-    "convert",
-]
+keywords = ["bit", "iterator", "bitvec", "bitstring", "convert"]
 
 [features]
 default = ["std"]
