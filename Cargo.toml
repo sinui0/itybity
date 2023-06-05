@@ -1,0 +1,26 @@
+[package]
+name = "itybity"
+version = "0.1.0"
+edition = "2021"
+authors = ["sinui0"]
+description = "Bit iterators and bit iterator accessories."
+repository = "https://github.com/sinui0/itybity"
+license = "MIT OR Apache-2.0"
+keywords = [
+    "bit",
+    "bool",
+    "iterator",
+    "iter",
+    "bitvec",
+    "no_std",
+    "bitstring",
+    "convert",
+]
+
+[features]
+default = ["std"]
+std = ["alloc"]
+alloc = []
+
+[dev-dependencies]
+rstest = "0.12"
