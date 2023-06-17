@@ -23,6 +23,20 @@ pub trait BitLength {
     const BITS: usize;
 }
 
+impl<const N: usize, T> BitLength for [T; N]
+where
+    T: BitLength,
+{
+    const BITS: usize = N * T::BITS;
+}
+
+impl<const N: usize, T> BitLength for &[T; N]
+where
+    T: BitLength,
+{
+    const BITS: usize = N * T::BITS;
+}
+
 /// Trait for getting a bit at a given index.
 pub trait GetBit<O>
 where

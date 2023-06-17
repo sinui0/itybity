@@ -108,6 +108,7 @@
 
 #[cfg(feature = "alloc")]
 mod alloc;
+mod bool;
 mod slice;
 mod str;
 mod traits;
