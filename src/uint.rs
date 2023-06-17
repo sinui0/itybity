@@ -49,24 +49,8 @@ macro_rules! impl_get_bit_uint {
             const BITS: usize = <$ty>::BITS as usize;
         }
 
-        impl<const N: usize> BitLength for [$ty; N] {
-            const BITS: usize = N * <$ty>::BITS as usize;
-        }
-
-        impl<const N: usize> BitLength for &[$ty; N] {
-            const BITS: usize = N * <$ty>::BITS as usize;
-        }
-
         impl BitLength for &$ty {
             const BITS: usize = <$ty>::BITS as usize;
-        }
-
-        impl<const N: usize> BitLength for [&$ty; N] {
-            const BITS: usize = N * <$ty>::BITS as usize;
-        }
-
-        impl<const N: usize> BitLength for &[&$ty; N] {
-            const BITS: usize = N * <$ty>::BITS as usize;
         }
 
         impl GetBit<Lsb0> for $ty {
