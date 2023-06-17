@@ -68,6 +68,16 @@ where
 {
 }
 
+impl<T, O> GetBit<O> for [T]
+where
+    T: GetBit<O> + BitLength,
+    O: BitOrder,
+{
+    fn get_bit(&self, index: usize) -> bool {
+        self[index / T::BITS].get_bit(index % T::BITS)
+    }
+}
+
 impl<'a, T> ToBits<'a> for [T]
 where
     T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + 'a,
@@ -84,22 +94,6 @@ where
     }
 }
 
-impl<'a, T, const N: usize> ToBits<'a> for [T; N]
-where
-    T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + 'a,
-{
-    type IterLsb0 = SliceBitIter<'a, T, Lsb0>;
-    type IterMsb0 = SliceBitIter<'a, T, Msb0>;
-
-    fn iter_lsb0(&'a self) -> Self::IterLsb0 {
-        SliceBitIter::from(self.as_slice())
-    }
-
-    fn iter_msb0(&'a self) -> Self::IterMsb0 {
-        SliceBitIter::from(self.as_slice())
-    }
-}
-
 impl<'a, T> IntoBits for &'a [T]
 where
     T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + 'a,
@@ -113,21 +107,5 @@ where
 
     fn into_iter_msb0(self) -> Self::IterMsb0 {
         SliceBitIter::from(self)
-    }
-}
-
-impl<'a, T, const N: usize> IntoBits for &'a [T; N]
-where
-    T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + 'static,
-{
-    type IterLsb0 = SliceBitIter<'a, T, Lsb0>;
-    type IterMsb0 = SliceBitIter<'a, T, Msb0>;
-
-    fn into_iter_lsb0(self) -> Self::IterLsb0 {
-        SliceBitIter::from(self.as_slice())
-    }
-
-    fn into_iter_msb0(self) -> Self::IterMsb0 {
-        SliceBitIter::from(self.as_slice())
     }
 }
