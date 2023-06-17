@@ -1,6 +1,6 @@
 [package]
 name = "itybity"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 authors = ["sinui0"]
 description = "An itty bitty crate providing bit iterators and bit iterator accessories."
