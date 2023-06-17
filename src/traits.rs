@@ -87,6 +87,21 @@ pub trait FromBits {
     fn from_msb0(iter: impl IntoIterator<Item = bool>) -> Self;
 }
 
+impl<const N: usize, T> FromBits for [T; N]
+where
+    T: FromBits,
+{
+    fn from_lsb0(iter: impl IntoIterator<Item = bool>) -> Self {
+        let mut iter = iter.into_iter();
+        core::array::from_fn(|_| T::from_lsb0(iter.by_ref()))
+    }
+
+    fn from_msb0(iter: impl IntoIterator<Item = bool>) -> Self {
+        let mut iter = iter.into_iter();
+        core::array::from_fn(|_| T::from_msb0(iter.by_ref()))
+    }
+}
+
 /// Trait for converting types into a borrowing bit iterator.
 pub trait ToBits<'a> {
     /// The Lsb0 bit iterator type.

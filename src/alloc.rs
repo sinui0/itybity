@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::vec::{IntoIter, Vec};
 use core::iter::FlatMap;
 
-use crate::{BitIter, BitLength, GetBit, IntoBits, Lsb0, Msb0, ToBits};
+use crate::{BitIter, BitLength, FromBits, GetBit, IntoBits, Lsb0, Msb0, ToBits};
 
 impl<'a> ToBits<'a> for Vec<bool> {
     type IterLsb0 = core::iter::Copied<core::slice::Iter<'a, bool>>;
@@ -31,5 +31,28 @@ where
 
     fn into_iter_msb0(self) -> Self::IterMsb0 {
         self.into_iter().flat_map(|elem| elem.into_iter_msb0())
+    }
+}
+
+impl<T> FromBits for Vec<T>
+where
+    T: FromBits,
+{
+    fn from_lsb0(iter: impl IntoIterator<Item = bool>) -> Self {
+        let mut iter = iter.into_iter().peekable();
+        let mut vec = Vec::new();
+        while iter.peek().is_some() {
+            vec.push(T::from_lsb0(iter.by_ref()));
+        }
+        vec
+    }
+
+    fn from_msb0(iter: impl IntoIterator<Item = bool>) -> Self {
+        let mut iter = iter.into_iter().peekable();
+        let mut vec = Vec::new();
+        while iter.peek().is_some() {
+            vec.push(T::from_msb0(iter.by_ref()));
+        }
+        vec
     }
 }
