@@ -348,6 +348,13 @@ mod tests {
     }
 
     #[rstest]
+    fn test_to_bit_iter_boolvec() {
+        let bits = vec![false, true, false, true, false, true, false, true];
+
+        assert_eq!(u8::from_lsb0(bits.iter_lsb0()), 0b10101010);
+    }
+
+    #[rstest]
     #[case::u8(PhantomData::<u8>)]
     #[case::u16(PhantomData::<u16>)]
     #[case::u32(PhantomData::<u32>)]
