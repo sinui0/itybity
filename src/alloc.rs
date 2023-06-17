@@ -3,18 +3,15 @@ extern crate alloc;
 use alloc::vec::{IntoIter, Vec};
 use core::iter::FlatMap;
 
-use crate::{BitIter, BitLength, FromBits, GetBit, IntoBits, Lsb0, Msb0, ToBits};
+use crate::{BitIter, BitLength, BitOrder, FromBits, GetBit, IntoBits, Lsb0, Msb0};
 
-impl<'a> ToBits<'a> for Vec<bool> {
-    type IterLsb0 = core::iter::Copied<core::slice::Iter<'a, bool>>;
-    type IterMsb0 = core::iter::Copied<core::slice::Iter<'a, bool>>;
-
-    fn iter_lsb0(&'a self) -> Self::IterLsb0 {
-        self.iter().copied()
-    }
-
-    fn iter_msb0(&'a self) -> Self::IterMsb0 {
-        self.iter().copied()
+impl<T, O> GetBit<O> for Vec<T>
+where
+    T: GetBit<O> + BitLength,
+    O: BitOrder,
+{
+    fn get_bit(&self, index: usize) -> bool {
+        self[index / T::BITS].get_bit(index % T::BITS)
     }
 }
 
