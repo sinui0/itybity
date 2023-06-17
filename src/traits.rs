@@ -50,6 +50,26 @@ where
     fn get_bit(&self, index: usize) -> bool;
 }
 
+impl<const N: usize, T, O> GetBit<O> for [T; N]
+where
+    T: GetBit<O> + BitLength,
+    O: BitOrder,
+{
+    fn get_bit(&self, index: usize) -> bool {
+        self[index / T::BITS].get_bit(index % T::BITS)
+    }
+}
+
+impl<const N: usize, T, O> GetBit<O> for &[T; N]
+where
+    T: GetBit<O> + BitLength,
+    O: BitOrder,
+{
+    fn get_bit(&self, index: usize) -> bool {
+        self[index / T::BITS].get_bit(index % T::BITS)
+    }
+}
+
 /// Trait used for parsing a value from a bit iterator.
 pub trait FromBits {
     /// Parses a value from an iterator of bits in Lsb0 order.
