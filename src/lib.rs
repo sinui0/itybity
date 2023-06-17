@@ -79,6 +79,17 @@
 //! let iter = vec![0u8, 1u8, 2u8, 3u8].into_iter();
 //!
 //! let bit_iter = iter.flat_map(IntoBits::into_iter_lsb0);
+//!
+//! // And we can parse it back
+//! let values = Vec::<u8>::from_lsb0(bit_iter);
+//!
+//! assert_eq!(values, vec![0u8, 1u8, 2u8, 3u8]);
+//!
+//! // We can do the same with arrays. Notice that the array is longer, so the last element
+//! // will be 0.
+//! let values = <[u8; 5]>::from_lsb0(values.iter_lsb0());
+//!
+//! assert_eq!(values, [0u8, 1u8, 2u8, 3u8, 0u8]);
 //! ```
 //!
 //! # Features
@@ -276,6 +287,64 @@ mod tests {
             assert_eq!(msb0_value, value);
             assert_eq!(lsb0_value, value);
         }
+    }
+
+    #[rstest]
+    #[case::u8(PhantomData::<u8>)]
+    #[case::u16(PhantomData::<u16>)]
+    #[case::u32(PhantomData::<u32>)]
+    #[case::u64(PhantomData::<u64>)]
+    #[case::u128(PhantomData::<u128>)]
+    #[case::usize(PhantomData::<usize>)]
+    fn test_from_bits_array<T>(#[case] _ty: PhantomData<T>)
+    where
+        T: Fixtures<T>
+            + IntoBits
+            + FromBits
+            + BitLength
+            + GetBit<Lsb0>
+            + GetBit<Msb0>
+            + PartialEq
+            + std::fmt::Debug
+            + std::fmt::Binary
+            + Copy,
+    {
+        let expected_values = [T::ZERO, T::ONE, T::TWO, T::MAX];
+
+        let lsb0 = <[T; 4]>::from_lsb0(expected_values.into_iter_lsb0());
+        let msb0 = <[T; 4]>::from_msb0(expected_values.into_iter_msb0());
+
+        assert_eq!(lsb0, expected_values);
+        assert_eq!(msb0, expected_values);
+    }
+
+    #[rstest]
+    #[case::u8(PhantomData::<u8>)]
+    #[case::u16(PhantomData::<u16>)]
+    #[case::u32(PhantomData::<u32>)]
+    #[case::u64(PhantomData::<u64>)]
+    #[case::u128(PhantomData::<u128>)]
+    #[case::usize(PhantomData::<usize>)]
+    fn test_from_bits_vec<T>(#[case] _ty: PhantomData<T>)
+    where
+        T: Fixtures<T>
+            + IntoBits
+            + FromBits
+            + BitLength
+            + GetBit<Lsb0>
+            + GetBit<Msb0>
+            + PartialEq
+            + std::fmt::Debug
+            + std::fmt::Binary
+            + Copy,
+    {
+        let expected_values = [T::ZERO, T::ONE, T::TWO, T::MAX];
+
+        let lsb0 = Vec::<T>::from_lsb0(expected_values.into_iter_lsb0());
+        let msb0 = Vec::<T>::from_msb0(expected_values.into_iter_msb0());
+
+        assert_eq!(lsb0, expected_values);
+        assert_eq!(msb0, expected_values);
     }
 
     #[rstest]
