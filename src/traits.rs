@@ -74,16 +74,14 @@ where
 pub trait FromBits {
     /// Parses a value from an iterator of bits in Lsb0 order.
     ///
-    /// # Panics
-    ///
-    /// Panics if the iterator yields fewer than `Self::BITS` bits.
+    /// If the iterator is shorter than the number of bits in the type, the remaining bits are
+    /// assumed to be zero.
     fn from_lsb0(iter: impl IntoIterator<Item = bool>) -> Self;
 
     /// Parses a value from an iterator of bits in Msb0 order.
     ///
-    /// # Panics
-    ///
-    /// Panics if the iterator yields fewer than `Self::BITS` bits.
+    /// If the iterator is shorter than the number of bits in the type, the remaining bits are
+    /// assumed to be zero.
     fn from_msb0(iter: impl IntoIterator<Item = bool>) -> Self;
 }
 

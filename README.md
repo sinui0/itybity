@@ -85,6 +85,17 @@ let data = u32::from_msb0(bits);
 let iter = vec![0u8, 1u8, 2u8, 3u8].into_iter();
 
 let bit_iter = iter.flat_map(IntoBits::into_iter_lsb0);
+
+// And we can parse it back
+let values = Vec::<u8>::from_lsb0(bit_iter);
+
+assert_eq!(values, vec![0u8, 1u8, 2u8, 3u8]);
+
+// We can do the same with arrays. Notice that the array is longer, so the last element
+// will be 0.
+let values = <[u8; 5]>::from_lsb0(values.iter_lsb0());
+
+assert_eq!(values, [0u8, 1u8, 2u8, 3u8, 0u8]);
 ```
 
 ## Features
