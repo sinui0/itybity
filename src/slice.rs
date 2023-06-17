@@ -68,6 +68,16 @@ where
 {
 }
 
+impl<T, O> GetBit<O> for [T]
+where
+    T: GetBit<O> + BitLength,
+    O: BitOrder,
+{
+    fn get_bit(&self, index: usize) -> bool {
+        self[index / T::BITS].get_bit(index % T::BITS)
+    }
+}
+
 impl<'a, T> ToBits<'a> for [T]
 where
     T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + 'a,
