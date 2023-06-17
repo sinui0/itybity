@@ -18,19 +18,6 @@ impl<'a> ToBits<'a> for Vec<bool> {
     }
 }
 
-impl IntoBits for Vec<bool> {
-    type IterLsb0 = IntoIter<bool>;
-    type IterMsb0 = IntoIter<bool>;
-
-    fn into_iter_lsb0(self) -> Self::IterLsb0 {
-        self.into_iter()
-    }
-
-    fn into_iter_msb0(self) -> Self::IterMsb0 {
-        self.into_iter()
-    }
-}
-
 impl<T> IntoBits for Vec<T>
 where
     T: BitLength + GetBit<Lsb0> + GetBit<Msb0>,
