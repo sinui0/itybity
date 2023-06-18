@@ -4,7 +4,9 @@
 [![Docs.rs](https://docs.rs/itybity/badge.svg)](https://docs.rs/itybity)
 [![CI](https://github.com/sinui0/itybity/workflows/CI/badge.svg)](https://github.com/sinui0/itybity/actions)
 
-An itty bitty crate providing bit iterators and bit iterator accessories.
+Feeling a bit iterable?
+
+Here's an itty bitty crate providing bit iterators and bit iterator accessories.
 
 No dependencies, no unsafe, and `#![no_std]` compatible.
 
