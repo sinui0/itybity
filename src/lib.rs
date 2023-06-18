@@ -94,7 +94,7 @@
 //!
 //! # Features
 //!
-//! `itybty` supports `#[no_std]` by disabling the default features.
+//! `itybity` supports `#[no_std]` by disabling the default features.
 //!
 //! - `std`: Enables `alloc`, for use of `Vec` and `String` types.
 //!

@@ -102,7 +102,7 @@ assert_eq!(values, [0u8, 1u8, 2u8, 3u8, 0u8]);
 
 ## Features
 
-`itybty` supports `#[no_std]` by disabling the default features.
+`itybity` supports `#[no_std]` by disabling the default features.
 
 - `std`: Enables `alloc`, for use of `Vec` and `String` types.
 
