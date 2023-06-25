@@ -1,9 +1,9 @@
-use crate::{BitLength, FromBits, GetBit, Lsb0, Msb0};
+use crate::{BitLength, FromBitIterator, GetBit, Lsb0, Msb0};
 
 macro_rules! impl_uint_from_bits {
     ($typ:ty) => {
-        impl FromBits for $typ {
-            fn from_lsb0(iter: impl IntoIterator<Item = bool>) -> Self {
+        impl FromBitIterator for $typ {
+            fn from_lsb0_iter(iter: impl IntoIterator<Item = bool>) -> Self {
                 let mut iter = iter.into_iter();
 
                 let mut value = <$typ>::default();
@@ -18,7 +18,7 @@ macro_rules! impl_uint_from_bits {
                 value
             }
 
-            fn from_msb0(iter: impl IntoIterator<Item = bool>) -> Self {
+            fn from_msb0_iter(iter: impl IntoIterator<Item = bool>) -> Self {
                 let mut iter = iter.into_iter();
 
                 let mut value = <$typ>::default();
@@ -46,14 +46,15 @@ impl_uint_from_bits!(usize);
 macro_rules! impl_get_bit_uint {
     ($ty:ty) => {
         impl BitLength for $ty {
-            const BITS: usize = <$ty>::BITS as usize;
+            const BITS: u16 = <$ty>::BITS as u16;
         }
 
         impl BitLength for &$ty {
-            const BITS: usize = <$ty>::BITS as usize;
+            const BITS: u16 = <$ty>::BITS as u16;
         }
 
         impl GetBit<Lsb0> for $ty {
+            #[inline]
             fn get_bit(&self, index: usize) -> bool {
                 assert!(index < <$ty>::BITS as usize);
                 self & (1 << index) != 0
@@ -61,12 +62,14 @@ macro_rules! impl_get_bit_uint {
         }
 
         impl GetBit<Lsb0> for &$ty {
+            #[inline]
             fn get_bit(&self, index: usize) -> bool {
                 GetBit::<Lsb0>::get_bit(*self, index)
             }
         }
 
         impl GetBit<Msb0> for $ty {
+            #[inline]
             fn get_bit(&self, index: usize) -> bool {
                 const BIT_MASK: $ty = 1 << (<$ty>::BITS - 1);
 
@@ -76,6 +79,7 @@ macro_rules! impl_get_bit_uint {
         }
 
         impl GetBit<Msb0> for &$ty {
+            #[inline]
             fn get_bit(&self, index: usize) -> bool {
                 GetBit::<Msb0>::get_bit(*self, index)
             }

@@ -1,11 +1,11 @@
 use crate::{BitLength, BitOrder, GetBit};
 
 impl BitLength for bool {
-    const BITS: usize = 1;
+    const BITS: u16 = 1;
 }
 
 impl BitLength for &bool {
-    const BITS: usize = 1;
+    const BITS: u16 = 1;
 }
 
 impl<O> GetBit<O> for bool
