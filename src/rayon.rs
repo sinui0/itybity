@@ -13,7 +13,7 @@ use crate::{BitIter, BitLength, BitOrder, GetBit, Lsb0, Msb0};
 /// Trait for types that can be converted into a borrowing parallel bit iterator.
 pub trait ToParallelBits<'a>
 where
-    &'a Self: GetBit<Lsb0> + GetBit<Msb0> + BitLength + Clone + Send + 'a,
+    &'a Self: GetBit<Lsb0> + GetBit<Msb0> + BitLength + Send + 'a,
 {
     /// The Lsb0 bit iterator type.
     type IterLsb0: ParallelIterator<Item = bool>;
@@ -29,7 +29,7 @@ where
 
 impl<'a, T> ToParallelBits<'a> for T
 where
-    &'a T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + Clone + Send + 'a,
+    &'a T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + Send + 'a,
 {
     type IterLsb0 = ParallelBitIter<&'a T, Lsb0>;
     type IterMsb0 = ParallelBitIter<&'a T, Msb0>;
@@ -46,7 +46,7 @@ where
 /// Trait for types that can be converted into a parallel bit iterator.
 pub trait IntoParallelBits
 where
-    Self: GetBit<Lsb0> + GetBit<Msb0> + BitLength + Clone + Send,
+    Self: GetBit<Lsb0> + GetBit<Msb0> + BitLength + Send,
 {
     /// The Lsb0 bit iterator type.
     type IterLsb0: ParallelIterator<Item = bool>;
