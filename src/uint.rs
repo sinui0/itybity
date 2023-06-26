@@ -46,11 +46,11 @@ impl_uint_from_bits!(usize);
 macro_rules! impl_get_bit_uint {
     ($ty:ty) => {
         impl BitLength for $ty {
-            const BITS: u16 = <$ty>::BITS as u16;
+            const BITS: usize = <$ty>::BITS as usize;
         }
 
         impl BitLength for &$ty {
-            const BITS: u16 = <$ty>::BITS as u16;
+            const BITS: usize = <$ty>::BITS as usize;
         }
 
         impl GetBit<Lsb0> for $ty {

@@ -121,6 +121,8 @@
 mod alloc;
 mod array;
 mod bool;
+#[cfg(feature = "rayon")]
+mod rayon;
 mod slice;
 mod str;
 mod traits;
@@ -130,6 +132,9 @@ pub use self::str::StrBitIter;
 pub use traits::{
     BitLength, BitOrder, FromBitIterator, GetBit, IntoBitIterator, IntoBits, StrToBits, ToBits,
 };
+
+#[cfg(feature = "rayon")]
+pub use self::rayon::{IntoParallelBitIterator, IntoParallelBits, ParallelBitIter, ToParallelBits};
 
 use core::{fmt::Debug, iter::FusedIterator, marker::PhantomData, ops::Range};
 
@@ -151,7 +156,7 @@ where
     O: BitOrder,
 {
     value: T,
-    range: Range<u16>,
+    range: Range<usize>,
     bit_order: PhantomData<O>,
 }
 
@@ -163,7 +168,7 @@ where
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.range.next().map(|i| self.value.get_bit(i as usize))
+        self.range.next().map(|i| self.value.get_bit(i))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -184,9 +189,7 @@ where
     O: BitOrder,
 {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.range
-            .next_back()
-            .map(|i| self.value.get_bit(i as usize))
+        self.range.next_back().map(|i| self.value.get_bit(i))
     }
 }
 
@@ -311,8 +314,8 @@ where
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (mut lower, mut upper) = self.iter.size_hint();
 
-        lower = lower.saturating_mul(I::Item::BITS as usize);
-        upper = upper.map(|u| u.saturating_mul(I::Item::BITS as usize));
+        lower = lower.saturating_mul(I::Item::BITS);
+        upper = upper.map(|u| u.saturating_mul(I::Item::BITS));
 
         if let Some(item) = &self.next {
             let remaining = item.range.len();

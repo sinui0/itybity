@@ -13,6 +13,10 @@ keywords = ["bit", "iterator", "bitvec", "bitstring", "convert"]
 default = ["std"]
 std = ["alloc"]
 alloc = []
+rayon = ["std", "dep:rayon"]
+
+[dependencies]
+rayon = { version = "1.7", optional = true }
 
 [dev-dependencies]
 rstest = "0.17"

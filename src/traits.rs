@@ -20,7 +20,7 @@ mod sealed {
 /// Trait for types with a const bit length.
 pub trait BitLength {
     /// The bit length of the type.
-    const BITS: u16;
+    const BITS: usize;
 }
 
 /// Trait for getting a bit at a given index.
