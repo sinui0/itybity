@@ -130,11 +130,15 @@ mod uint;
 
 pub use self::str::StrBitIter;
 pub use traits::{
-    BitLength, BitOrder, FromBitIterator, GetBit, IntoBitIterator, IntoBits, StrToBits, ToBits,
+    BitIterable, BitLength, BitOrder, FromBitIterator, GetBit, IntoBitIterator, IntoBits,
+    StrToBits, ToBits,
 };
 
 #[cfg(feature = "rayon")]
-pub use self::rayon::{IntoParallelBitIterator, IntoParallelBits, ParallelBitIter, ToParallelBits};
+pub use self::rayon::{
+    IntoParallelBitIterator, IntoParallelBits, IntoParallelRefBitIterator, ParallelBitIter,
+    ToParallelBits,
+};
 
 use core::{fmt::Debug, iter::FusedIterator, marker::PhantomData, ops::Range};
 

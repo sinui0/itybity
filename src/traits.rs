@@ -23,6 +23,13 @@ pub trait BitLength {
     const BITS: usize;
 }
 
+impl<T: ?Sized> BitLength for &T
+where
+    T: BitLength,
+{
+    const BITS: usize = T::BITS;
+}
+
 /// Trait for getting a bit at a given index.
 pub trait GetBit<O>
 where
@@ -35,6 +42,21 @@ where
     /// Implementations may panic if the provided index is out of bounds.
     fn get_bit(&self, index: usize) -> bool;
 }
+
+impl<T: ?Sized, O> GetBit<O> for &T
+where
+    T: GetBit<O>,
+    O: BitOrder,
+{
+    fn get_bit(&self, index: usize) -> bool {
+        T::get_bit(*self, index)
+    }
+}
+
+/// A type whose bits can be iterated over.
+pub trait BitIterable: GetBit<Lsb0> + GetBit<Msb0> + BitLength {}
+
+impl<T: ?Sized> BitIterable for &T where T: BitIterable {}
 
 /// Trait used for parsing a value from a bit iterator.
 pub trait FromBitIterator {

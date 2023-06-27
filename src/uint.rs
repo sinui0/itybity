@@ -1,4 +1,4 @@
-use crate::{BitLength, FromBitIterator, GetBit, Lsb0, Msb0};
+use crate::{BitIterable, BitLength, FromBitIterator, GetBit, Lsb0, Msb0};
 
 macro_rules! impl_uint_from_bits {
     ($typ:ty) => {
@@ -49,22 +49,11 @@ macro_rules! impl_get_bit_uint {
             const BITS: usize = <$ty>::BITS as usize;
         }
 
-        impl BitLength for &$ty {
-            const BITS: usize = <$ty>::BITS as usize;
-        }
-
         impl GetBit<Lsb0> for $ty {
             #[inline]
             fn get_bit(&self, index: usize) -> bool {
                 assert!(index < <$ty>::BITS as usize);
                 self & (1 << index) != 0
-            }
-        }
-
-        impl GetBit<Lsb0> for &$ty {
-            #[inline]
-            fn get_bit(&self, index: usize) -> bool {
-                GetBit::<Lsb0>::get_bit(*self, index)
             }
         }
 
@@ -78,12 +67,7 @@ macro_rules! impl_get_bit_uint {
             }
         }
 
-        impl GetBit<Msb0> for &$ty {
-            #[inline]
-            fn get_bit(&self, index: usize) -> bool {
-                GetBit::<Msb0>::get_bit(*self, index)
-            }
-        }
+        impl BitIterable for $ty {}
     };
 }
 
