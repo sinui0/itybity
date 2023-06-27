@@ -2,15 +2,13 @@ use core::{fmt::Debug, marker::PhantomData, ops::Range};
 
 use rayon::{
     iter::{
-        plumbing::{
-            bridge, Consumer, Folder, Producer, ProducerCallback, Reducer, UnindexedConsumer,
-        },
+        plumbing::{bridge, Consumer, Producer, ProducerCallback, UnindexedConsumer},
         FlatMap, ParallelIterator,
     },
     prelude::{IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator},
 };
 
-use crate::{BitIter, BitIterable, BitLength, BitOrder, GetBit, IntoBitIter, Lsb0, Msb0};
+use crate::{BitIter, BitIterable, BitLength, BitOrder, GetBit, Lsb0, Msb0};
 
 /// Trait for types that can be converted into a borrowing parallel bit iterator.
 ///
