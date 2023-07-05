@@ -46,7 +46,7 @@ First, add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-itybity = "0.1"
+itybity = "0.2"
 ```
 
 ## Examples
