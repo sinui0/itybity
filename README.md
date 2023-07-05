@@ -52,7 +52,7 @@ itybity = "0.2"
 ## Examples
 
 ```rust
-use itybity::{ToBits, IntoBits, FromBits, StrToBits};
+use itybity::{ToBits, IntoBits, FromBitIterator, StrToBits};
 
 let byte = 0b1010_1010u8;
 
@@ -61,7 +61,7 @@ let bits = byte.to_lsb0_vec();
 
 assert_eq!(bits, vec![false, true, false, true, false, true, false, true]);
 
-// Writing a bit vector using bools is a pain, use a string instead!
+// Writing a bit vector using bools is a pain, use a string instead
 //
 // Notice that the string is written in Msb0 order, and we reverse it to Lsb0.
 let expected_bits = "10101010".iter_bits().rev().collect::<Vec<bool>>();
@@ -69,10 +69,10 @@ let expected_bits = "10101010".iter_bits().rev().collect::<Vec<bool>>();
 assert_eq!(bits, expected_bits);
 
 // Convert back to a u8.
-let new_byte = u8::from_lsb0(bits);
+let new_byte = u8::from_lsb0_iter(bits);
 assert_eq!(byte, new_byte);
 
-// We can work with slices too!
+// We can work with slices too
 let bytes = vec![0u8, 1u8, 2u8, 3u8];
 
 // Create an iterator over the bits in Msb0 order.
@@ -81,7 +81,7 @@ let bits = bytes.iter_msb0();
 assert_eq!(bits.len(), 32);
 
 // Convert back to a different type
-let data = u32::from_msb0(bits);
+let data = u32::from_msb0_iter(bits);
 
 // If we have an iterator of values, we can map it to an iterator of bits.
 let iter = vec![0u8, 1u8, 2u8, 3u8].into_iter();
@@ -89,13 +89,13 @@ let iter = vec![0u8, 1u8, 2u8, 3u8].into_iter();
 let bit_iter = iter.flat_map(IntoBits::into_iter_lsb0);
 
 // And we can parse it back
-let values = Vec::<u8>::from_lsb0(bit_iter);
+let values = Vec::<u8>::from_lsb0_iter(bit_iter);
 
 assert_eq!(values, vec![0u8, 1u8, 2u8, 3u8]);
 
 // We can do the same with arrays. Notice that the array is longer, so the last element
 // will be 0.
-let values = <[u8; 5]>::from_lsb0(values.iter_lsb0());
+let values = <[u8; 5]>::from_lsb0_iter(values.iter_lsb0());
 
 assert_eq!(values, [0u8, 1u8, 2u8, 3u8, 0u8]);
 ```
