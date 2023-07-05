@@ -1,6 +1,6 @@
 [package]
 name = "itybity"
-version = "0.1.6"
+version = "0.2.0"
 edition = "2021"
 authors = ["sinui0"]
 description = "An itty bitty crate providing bit iterators and bit iterator accessories."
@@ -13,6 +13,10 @@ keywords = ["bit", "iterator", "bitvec", "bitstring", "convert"]
 default = ["std"]
 std = ["alloc"]
 alloc = []
+rayon = ["std", "dep:rayon"]
+
+[dependencies]
+rayon = { version = "1.7", optional = true }
 
 [dev-dependencies]
 rstest = "0.17"

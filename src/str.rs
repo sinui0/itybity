@@ -1,7 +1,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-use crate::{FromBits, StrToBits};
+use crate::{FromBitIterator, StrToBits};
 
 /// Iterator over a bit string.
 ///
@@ -43,8 +43,8 @@ impl<'a> DoubleEndedIterator for StrBitIter<'a> {
 }
 
 #[cfg(feature = "alloc")]
-impl FromBits for alloc::string::String {
-    fn from_lsb0(iter: impl IntoIterator<Item = bool>) -> Self {
+impl FromBitIterator for alloc::string::String {
+    fn from_lsb0_iter(iter: impl IntoIterator<Item = bool>) -> Self {
         iter.into_iter()
             .map(|b| if b { '1' } else { '0' })
             .collect::<alloc::string::String>()
@@ -53,7 +53,7 @@ impl FromBits for alloc::string::String {
             .collect()
     }
 
-    fn from_msb0(iter: impl IntoIterator<Item = bool>) -> Self {
+    fn from_msb0_iter(iter: impl IntoIterator<Item = bool>) -> Self {
         iter.into_iter()
             .map(|b| if b { '1' } else { '0' })
             .collect()
@@ -92,7 +92,7 @@ mod tests {
         let expected_msb0 = format!("{:08b}", value);
         let expected_lsb0 = expected_msb0.chars().rev().collect::<String>();
 
-        assert_eq!(String::from_msb0(bits.clone()), expected_msb0);
-        assert_eq!(String::from_lsb0(bits), expected_lsb0);
+        assert_eq!(String::from_msb0_iter(bits.clone()), expected_msb0);
+        assert_eq!(String::from_lsb0_iter(bits), expected_lsb0);
     }
 }

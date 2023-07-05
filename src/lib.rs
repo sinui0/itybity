@@ -7,7 +7,7 @@
 //! This crate provides iterators for iterating over the bits of various types, including integers, slices, and strings.
 //! These iterators can be conveniently accessed via the provided extension traits, eg [`ToBits`], [`IntoBits`], and [`StrToBits`].
 //!
-//! The [`FromBits`] trait provides implementations for parsing types from bit iterators.
+//! The [`FromBitIterator`] trait provides implementations for parsing types from bit iterators.
 //!
 //! # Performance
 //!
@@ -44,7 +44,7 @@
 //! # Examples
 //!
 //! ```rust
-//! use itybity::{ToBits, IntoBits, FromBits, StrToBits};
+//! use itybity::{ToBits, IntoBits, FromBitIterator, StrToBits};
 //!
 //! let byte = 0b1010_1010u8;
 //!
@@ -61,7 +61,7 @@
 //! assert_eq!(bits, expected_bits);
 //!
 //! // Convert back to a u8.
-//! let new_byte = u8::from_lsb0(bits);
+//! let new_byte = u8::from_lsb0_iter(bits);
 //! assert_eq!(byte, new_byte);
 //!
 //! // We can work with slices too!
@@ -73,7 +73,7 @@
 //! assert_eq!(bits.len(), 32);
 //!
 //! // Convert back to a different type
-//! let data = u32::from_msb0(bits);
+//! let data = u32::from_msb0_iter(bits);
 //!
 //! // If we have an iterator of values, we can map it to an iterator of bits.
 //! let iter = vec![0u8, 1u8, 2u8, 3u8].into_iter();
@@ -81,13 +81,13 @@
 //! let bit_iter = iter.flat_map(IntoBits::into_iter_lsb0);
 //!
 //! // And we can parse it back
-//! let values = Vec::<u8>::from_lsb0(bit_iter);
+//! let values = Vec::<u8>::from_lsb0_iter(bit_iter);
 //!
 //! assert_eq!(values, vec![0u8, 1u8, 2u8, 3u8]);
 //!
 //! // We can do the same with arrays. Notice that the array is longer, so the last element
 //! // will be 0.
-//! let values = <[u8; 5]>::from_lsb0(values.iter_lsb0());
+//! let values = <[u8; 5]>::from_lsb0_iter(values.iter_lsb0());
 //!
 //! assert_eq!(values, [0u8, 1u8, 2u8, 3u8, 0u8]);
 //! ```
@@ -119,17 +119,28 @@
 
 #[cfg(feature = "alloc")]
 mod alloc;
+mod array;
 mod bool;
+#[cfg(feature = "rayon")]
+mod rayon;
 mod slice;
 mod str;
 mod traits;
 mod uint;
 
 pub use self::str::StrBitIter;
-pub use slice::SliceBitIter;
-pub use traits::{BitLength, BitOrder, FromBits, GetBit, IntoBits, StrToBits, ToBits};
+pub use traits::{
+    BitIterable, BitLength, BitOrder, FromBitIterator, GetBit, IntoBitIterator, IntoBits,
+    StrToBits, ToBits,
+};
 
-use core::{iter::FusedIterator, marker::PhantomData};
+#[cfg(feature = "rayon")]
+pub use self::rayon::{
+    IntoParallelBitIterator, IntoParallelBits, IntoParallelRefBitIterator, ParallelBitIter,
+    ToParallelBits,
+};
+
+use core::{fmt::Debug, iter::FusedIterator, marker::PhantomData, ops::Range};
 
 /// Lsb0 bit order.
 #[derive(Debug, Clone, Copy)]
@@ -149,12 +160,9 @@ where
     O: BitOrder,
 {
     value: T,
-    pos: usize,
+    range: Range<usize>,
     bit_order: PhantomData<O>,
 }
-
-impl<T> Copy for BitIter<T, Lsb0> where T: Clone + Copy {}
-impl<T> Copy for BitIter<T, Msb0> where T: Clone + Copy {}
 
 impl<T, O> Iterator for BitIter<T, O>
 where
@@ -164,18 +172,11 @@ where
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.pos < T::BITS {
-            let bit = self.value.get_bit(self.pos);
-            self.pos += 1;
-            Some(bit)
-        } else {
-            None
-        }
+        self.range.next().map(|i| self.value.get_bit(i))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let remaining = T::BITS - self.pos;
-        (remaining, Some(remaining))
+        self.range.size_hint()
     }
 }
 
@@ -186,6 +187,16 @@ where
 {
 }
 
+impl<T, O> DoubleEndedIterator for BitIter<T, O>
+where
+    T: GetBit<O> + BitLength,
+    O: BitOrder,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.range.next_back().map(|i| self.value.get_bit(i))
+    }
+}
+
 impl<T, O> FusedIterator for BitIter<T, O>
 where
     T: GetBit<O> + BitLength,
@@ -193,47 +204,187 @@ where
 {
 }
 
-impl<'a, T> ToBits<'a> for T
-where
-    &'a T: BitLength + GetBit<Lsb0> + GetBit<Msb0> + 'a,
-{
-    type IterLsb0 = BitIter<&'a T, Lsb0>;
-    type IterMsb0 = BitIter<&'a T, Msb0>;
-
-    fn iter_lsb0(&'a self) -> Self::IterLsb0 {
-        BitIter::from(self)
-    }
-
-    fn iter_msb0(&'a self) -> Self::IterMsb0 {
-        BitIter::from(self)
-    }
-}
-
-impl<T> IntoBits for T
-where
-    T: BitLength + GetBit<Lsb0> + GetBit<Msb0>,
-{
-    type IterLsb0 = BitIter<T, Lsb0>;
-    type IterMsb0 = BitIter<T, Msb0>;
-
-    fn into_iter_lsb0(self) -> Self::IterLsb0 {
-        BitIter::from(self)
-    }
-
-    fn into_iter_msb0(self) -> Self::IterMsb0 {
-        BitIter::from(self)
-    }
-}
-
 impl<T, O> From<T> for BitIter<T, O>
 where
-    T: GetBit<O>,
+    T: GetBit<O> + BitLength,
     O: BitOrder,
 {
     fn from(value: T) -> Self {
         Self {
             value,
-            pos: 0,
+            range: 0..T::BITS,
+            bit_order: PhantomData,
+        }
+    }
+}
+
+/// A wrapper that converts an iterator over values to an iterator over bits.
+pub struct IntoBitIter<I, O>
+where
+    I: Iterator,
+    O: BitOrder,
+{
+    iter: I,
+    next: Option<BitIter<I::Item, O>>,
+    next_back: Option<BitIter<I::Item, O>>,
+    bit_order: PhantomData<O>,
+}
+
+impl<I, O> IntoBitIter<I, O>
+where
+    I: Iterator,
+    O: BitOrder,
+{
+    /// Returns a reference to the wrapped iterator.
+    pub fn inner(&self) -> &I {
+        &self.iter
+    }
+
+    /// Returns a mutable reference to the wrapped iterator.
+    pub fn inner_mut(&mut self) -> &mut I {
+        &mut self.iter
+    }
+
+    /// Returns the wrapped iterator.
+    ///
+    /// # Warning
+    ///
+    /// `IntoBitIter` buffers items from the wrapped iterator, so calling this method may
+    /// cause data loss.
+    pub fn into_inner(self) -> I {
+        self.iter
+    }
+}
+
+impl<I, O> Debug for IntoBitIter<I, O>
+where
+    I: Iterator + Debug,
+    O: BitOrder,
+{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("IntoBitIter")
+            .field("iter", &self.iter)
+            .field("bit_order", &self.bit_order)
+            .finish()
+    }
+}
+
+impl<I, O> Clone for IntoBitIter<I, O>
+where
+    I: Iterator + Clone,
+    I::Item: Clone,
+    O: BitOrder,
+{
+    fn clone(&self) -> Self {
+        Self {
+            iter: self.iter.clone(),
+            next: self.next.clone(),
+            next_back: self.next_back.clone(),
+            bit_order: self.bit_order,
+        }
+    }
+}
+
+impl<I, O> Iterator for IntoBitIter<I, O>
+where
+    I: Iterator,
+    I::Item: GetBit<O> + BitLength,
+    O: BitOrder,
+{
+    type Item = bool;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(item) = &mut self.next {
+            if let Some(bit) = item.next() {
+                return Some(bit);
+            }
+        }
+
+        self.next = self.iter.next().map(BitIter::from);
+
+        if self.next.is_some() {
+            return self.next();
+        }
+
+        if let Some(item) = &mut self.next_back {
+            if let Some(bit) = item.next() {
+                return Some(bit);
+            }
+        }
+
+        None
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (mut lower, mut upper) = self.iter.size_hint();
+
+        lower = lower.saturating_mul(I::Item::BITS);
+        upper = upper.map(|u| u.saturating_mul(I::Item::BITS));
+
+        if let Some(item) = &self.next {
+            let remaining = item.range.len();
+            lower = lower.saturating_add(remaining);
+            upper = upper.map(|u| u.saturating_add(remaining));
+        }
+
+        if let Some(item) = &self.next_back {
+            let remaining = item.range.len();
+            lower = lower.saturating_add(remaining);
+            upper = upper.map(|u| u.saturating_add(remaining));
+        }
+
+        (lower, upper)
+    }
+}
+
+impl<I, O> DoubleEndedIterator for IntoBitIter<I, O>
+where
+    I: DoubleEndedIterator,
+    I::Item: GetBit<O> + BitLength,
+    O: BitOrder,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if let Some(item) = &mut self.next_back {
+            if let Some(bit) = item.next_back() {
+                return Some(bit);
+            }
+        }
+
+        self.next_back = self.iter.next_back().map(BitIter::from);
+
+        if self.next_back.is_some() {
+            return self.next_back();
+        }
+
+        if let Some(item) = &mut self.next {
+            if let Some(bit) = item.next_back() {
+                return Some(bit);
+            }
+        }
+
+        None
+    }
+}
+
+impl<I, O> ExactSizeIterator for IntoBitIter<I, O>
+where
+    I: ExactSizeIterator,
+    I::Item: GetBit<O> + BitLength,
+    O: BitOrder,
+{
+}
+
+impl<I, O> From<I> for IntoBitIter<I, O>
+where
+    I: Iterator,
+    I::Item: GetBit<O> + BitLength,
+    O: BitOrder,
+{
+    fn from(iter: I) -> Self {
+        IntoBitIter {
+            iter,
+            next: None,
+            next_back: None,
             bit_order: PhantomData,
         }
     }
@@ -277,12 +428,12 @@ mod tests {
     #[case::usize(PhantomData::<usize>)]
     fn test_from_bits<T>(#[case] _ty: PhantomData<T>)
     where
-        T: Fixtures<T> + FromBits + PartialEq + std::fmt::Debug + std::fmt::Binary,
+        T: Fixtures<T> + FromBitIterator + PartialEq + std::fmt::Debug + std::fmt::Binary,
     {
         for value in [T::ZERO, T::ONE, T::TWO, T::MAX] {
             let msb0_bits = format!("{:0width$b}", value, width = T::BITS);
-            let msb0_value = T::from_msb0(msb0_bits.iter_bits());
-            let lsb0_value = T::from_lsb0(msb0_bits.iter_bits().rev());
+            let msb0_value = T::from_msb0_iter(msb0_bits.iter_bits());
+            let lsb0_value = T::from_lsb0_iter(msb0_bits.iter_bits().rev());
 
             assert_eq!(msb0_value, value);
             assert_eq!(lsb0_value, value);
@@ -300,7 +451,7 @@ mod tests {
     where
         T: Fixtures<T>
             + IntoBits
-            + FromBits
+            + FromBitIterator
             + BitLength
             + GetBit<Lsb0>
             + GetBit<Msb0>
@@ -311,8 +462,8 @@ mod tests {
     {
         let expected_values = [T::ZERO, T::ONE, T::TWO, T::MAX];
 
-        let lsb0 = <[T; 4]>::from_lsb0(expected_values.into_iter_lsb0());
-        let msb0 = <[T; 4]>::from_msb0(expected_values.into_iter_msb0());
+        let lsb0 = <[T; 4]>::from_lsb0_iter(expected_values.into_iter_lsb0());
+        let msb0 = <[T; 4]>::from_msb0_iter(expected_values.into_iter_msb0());
 
         assert_eq!(lsb0, expected_values);
         assert_eq!(msb0, expected_values);
@@ -329,7 +480,7 @@ mod tests {
     where
         T: Fixtures<T>
             + IntoBits
-            + FromBits
+            + FromBitIterator
             + BitLength
             + GetBit<Lsb0>
             + GetBit<Msb0>
@@ -340,8 +491,8 @@ mod tests {
     {
         let expected_values = [T::ZERO, T::ONE, T::TWO, T::MAX];
 
-        let lsb0 = Vec::<T>::from_lsb0(expected_values.into_iter_lsb0());
-        let msb0 = Vec::<T>::from_msb0(expected_values.into_iter_msb0());
+        let lsb0 = Vec::<T>::from_lsb0_iter(expected_values.into_iter_lsb0());
+        let msb0 = Vec::<T>::from_msb0_iter(expected_values.into_iter_msb0());
 
         assert_eq!(lsb0, expected_values);
         assert_eq!(msb0, expected_values);
@@ -351,7 +502,7 @@ mod tests {
     fn test_to_bit_iter_boolvec() {
         let bits = vec![false, true, false, true, false, true, false, true];
 
-        assert_eq!(u8::from_lsb0(bits.iter_lsb0()), 0b10101010);
+        assert_eq!(u8::from_lsb0_iter(bits.iter_lsb0()), 0b10101010);
     }
 
     #[rstest]

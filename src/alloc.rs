@@ -1,54 +1,60 @@
 extern crate alloc;
 
-use alloc::vec::{IntoIter, Vec};
-use core::iter::FlatMap;
+use alloc::vec::Vec;
+use core::slice::Iter as SliceIter;
 
-use crate::{BitIter, BitLength, BitOrder, FromBits, GetBit, IntoBits, Lsb0, Msb0};
+use crate::{BitLength, FromBitIterator, GetBit, IntoBitIter, Lsb0, Msb0, ToBits};
 
-impl<T, O> GetBit<O> for Vec<T>
+impl<'a, T> ToBits<'a> for Vec<T>
 where
-    T: GetBit<O> + BitLength,
-    O: BitOrder,
+    &'a T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + 'a,
 {
-    fn get_bit(&self, index: usize) -> bool {
-        self[index / T::BITS].get_bit(index % T::BITS)
+    type IterLsb0 = IntoBitIter<SliceIter<'a, T>, Lsb0>;
+    type IterMsb0 = IntoBitIter<SliceIter<'a, T>, Msb0>;
+
+    fn iter_lsb0(&'a self) -> Self::IterLsb0 {
+        IntoBitIter::from(self.iter())
+    }
+
+    fn iter_msb0(&'a self) -> Self::IterMsb0 {
+        IntoBitIter::from(self.iter())
     }
 }
 
-impl<T> IntoBits for Vec<T>
+impl<'a, 'b, T> ToBits<'a> for &'b Vec<T>
 where
-    T: BitLength + GetBit<Lsb0> + GetBit<Msb0>,
+    &'a T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + 'a,
 {
-    type IterLsb0 = FlatMap<IntoIter<T>, BitIter<T, Lsb0>, fn(T) -> BitIter<T, Lsb0>>;
-    type IterMsb0 = FlatMap<IntoIter<T>, BitIter<T, Msb0>, fn(T) -> BitIter<T, Msb0>>;
+    type IterLsb0 = IntoBitIter<SliceIter<'a, T>, Lsb0>;
+    type IterMsb0 = IntoBitIter<SliceIter<'a, T>, Msb0>;
 
-    fn into_iter_lsb0(self) -> Self::IterLsb0 {
-        self.into_iter().flat_map(|elem| elem.into_iter_lsb0())
+    fn iter_lsb0(&'a self) -> Self::IterLsb0 {
+        IntoBitIter::from(self.iter())
     }
 
-    fn into_iter_msb0(self) -> Self::IterMsb0 {
-        self.into_iter().flat_map(|elem| elem.into_iter_msb0())
+    fn iter_msb0(&'a self) -> Self::IterMsb0 {
+        IntoBitIter::from(self.iter())
     }
 }
 
-impl<T> FromBits for Vec<T>
+impl<T> FromBitIterator for Vec<T>
 where
-    T: FromBits,
+    T: FromBitIterator,
 {
-    fn from_lsb0(iter: impl IntoIterator<Item = bool>) -> Self {
+    fn from_lsb0_iter(iter: impl IntoIterator<Item = bool>) -> Self {
         let mut iter = iter.into_iter().peekable();
         let mut vec = Vec::new();
         while iter.peek().is_some() {
-            vec.push(T::from_lsb0(iter.by_ref()));
+            vec.push(T::from_lsb0_iter(iter.by_ref()));
         }
         vec
     }
 
-    fn from_msb0(iter: impl IntoIterator<Item = bool>) -> Self {
+    fn from_msb0_iter(iter: impl IntoIterator<Item = bool>) -> Self {
         let mut iter = iter.into_iter().peekable();
         let mut vec = Vec::new();
         while iter.peek().is_some() {
-            vec.push(T::from_msb0(iter.by_ref()));
+            vec.push(T::from_msb0_iter(iter.by_ref()));
         }
         vec
     }

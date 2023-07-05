@@ -4,7 +4,7 @@ extern crate alloc as core_alloc;
 #[cfg(feature = "alloc")]
 use core_alloc::vec::Vec;
 
-use crate::{Lsb0, Msb0, StrBitIter};
+use crate::{str::StrBitIter, BitIter, IntoBitIter, Lsb0, Msb0};
 
 /// Marker trait for bit order.
 pub trait BitOrder: sealed::Sealed + Clone + Copy + Send + Sync + 'static {}
@@ -23,18 +23,11 @@ pub trait BitLength {
     const BITS: usize;
 }
 
-impl<const N: usize, T> BitLength for [T; N]
+impl<T: ?Sized> BitLength for &T
 where
     T: BitLength,
 {
-    const BITS: usize = N * T::BITS;
-}
-
-impl<const N: usize, T> BitLength for &[T; N]
-where
-    T: BitLength,
-{
-    const BITS: usize = N * T::BITS;
+    const BITS: usize = T::BITS;
 }
 
 /// Trait for getting a bit at a given index.
@@ -50,54 +43,34 @@ where
     fn get_bit(&self, index: usize) -> bool;
 }
 
-impl<const N: usize, T, O> GetBit<O> for [T; N]
+impl<T: ?Sized, O> GetBit<O> for &T
 where
-    T: GetBit<O> + BitLength,
+    T: GetBit<O>,
     O: BitOrder,
 {
     fn get_bit(&self, index: usize) -> bool {
-        self[index / T::BITS].get_bit(index % T::BITS)
+        T::get_bit(*self, index)
     }
 }
 
-impl<const N: usize, T, O> GetBit<O> for &[T; N]
-where
-    T: GetBit<O> + BitLength,
-    O: BitOrder,
-{
-    fn get_bit(&self, index: usize) -> bool {
-        self[index / T::BITS].get_bit(index % T::BITS)
-    }
-}
+/// A type whose bits can be iterated over.
+pub trait BitIterable: GetBit<Lsb0> + GetBit<Msb0> + BitLength {}
+
+impl<T: ?Sized> BitIterable for &T where T: BitIterable {}
 
 /// Trait used for parsing a value from a bit iterator.
-pub trait FromBits {
+pub trait FromBitIterator {
     /// Parses a value from an iterator of bits in Lsb0 order.
     ///
     /// If the iterator is shorter than the number of bits in the type, the remaining bits are
     /// assumed to be zero.
-    fn from_lsb0(iter: impl IntoIterator<Item = bool>) -> Self;
+    fn from_lsb0_iter(iter: impl IntoIterator<Item = bool>) -> Self;
 
     /// Parses a value from an iterator of bits in Msb0 order.
     ///
     /// If the iterator is shorter than the number of bits in the type, the remaining bits are
     /// assumed to be zero.
-    fn from_msb0(iter: impl IntoIterator<Item = bool>) -> Self;
-}
-
-impl<const N: usize, T> FromBits for [T; N]
-where
-    T: FromBits,
-{
-    fn from_lsb0(iter: impl IntoIterator<Item = bool>) -> Self {
-        let mut iter = iter.into_iter();
-        core::array::from_fn(|_| T::from_lsb0(iter.by_ref()))
-    }
-
-    fn from_msb0(iter: impl IntoIterator<Item = bool>) -> Self {
-        let mut iter = iter.into_iter();
-        core::array::from_fn(|_| T::from_msb0(iter.by_ref()))
-    }
+    fn from_msb0_iter(iter: impl IntoIterator<Item = bool>) -> Self;
 }
 
 /// Trait for converting types into a borrowing bit iterator.
@@ -126,8 +99,27 @@ pub trait ToBits<'a> {
     }
 }
 
+impl<'a, T> ToBits<'a> for T
+where
+    &'a T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + 'a,
+{
+    type IterLsb0 = BitIter<&'a T, Lsb0>;
+    type IterMsb0 = BitIter<&'a T, Msb0>;
+
+    fn iter_lsb0(&'a self) -> Self::IterLsb0 {
+        BitIter::from(self)
+    }
+
+    fn iter_msb0(&'a self) -> Self::IterMsb0 {
+        BitIter::from(self)
+    }
+}
+
 /// Trait for converting types into a bit iterator.
-pub trait IntoBits: Sized {
+///
+/// This trait is automatically implemented for all types that implement `GetBit` and
+/// `BitLength`.
+pub trait IntoBits {
     /// The Lsb0 bit iterator type.
     type IterLsb0: Iterator<Item = bool>;
     /// The Msb0 bit iterator type.
@@ -138,7 +130,10 @@ pub trait IntoBits: Sized {
 
     /// Converts `self` into a bit vector in Lsb0 order.
     #[cfg(feature = "alloc")]
-    fn into_lsb0_vec(self) -> Vec<bool> {
+    fn into_lsb0_vec(self) -> Vec<bool>
+    where
+        Self: Sized,
+    {
         self.into_iter_lsb0().collect()
     }
 
@@ -147,8 +142,79 @@ pub trait IntoBits: Sized {
 
     /// Converts `self` into a bit vector in Msb0 order.
     #[cfg(feature = "alloc")]
-    fn into_msb0_vec(self) -> Vec<bool> {
+    fn into_msb0_vec(self) -> Vec<bool>
+    where
+        Self: Sized,
+    {
         self.into_iter_msb0().collect()
+    }
+}
+
+impl<T> IntoBits for T
+where
+    T: GetBit<Lsb0> + GetBit<Msb0> + BitLength,
+{
+    type IterLsb0 = BitIter<T, Lsb0>;
+    type IterMsb0 = BitIter<T, Msb0>;
+
+    fn into_iter_lsb0(self) -> Self::IterLsb0 {
+        BitIter::from(self)
+    }
+
+    fn into_iter_msb0(self) -> Self::IterMsb0 {
+        BitIter::from(self)
+    }
+}
+
+/// Trait for converting iterators over values into iterators over bits.
+///
+/// This trait is automatically implemented for all types that implement `IntoIterator` where
+/// the item type implements `IntoBits`.
+pub trait IntoBitIterator {
+    /// The Lsb0 bit iterator type.
+    type IterLsb0: Iterator<Item = bool>;
+    /// The Msb0 bit iterator type.
+    type IterMsb0: Iterator<Item = bool>;
+
+    /// Converts `self` into a bit iterator in Lsb0 order.
+    fn into_iter_lsb0(self) -> Self::IterLsb0;
+
+    /// Converts `self` into a bit vector in Lsb0 order.
+    #[cfg(feature = "alloc")]
+    fn into_lsb0_vec(self) -> Vec<bool>
+    where
+        Self: Sized,
+    {
+        self.into_iter_lsb0().collect()
+    }
+
+    /// Converts `self` into a bit iterator in Msb0 order.
+    fn into_iter_msb0(self) -> Self::IterMsb0;
+
+    /// Converts `self` into a bit vector in Msb0 order.
+    #[cfg(feature = "alloc")]
+    fn into_msb0_vec(self) -> Vec<bool>
+    where
+        Self: Sized,
+    {
+        self.into_iter_msb0().collect()
+    }
+}
+
+impl<T> IntoBitIterator for T
+where
+    T: IntoIterator,
+    T::Item: GetBit<Lsb0> + GetBit<Msb0> + BitLength,
+{
+    type IterLsb0 = IntoBitIter<T::IntoIter, Lsb0>;
+    type IterMsb0 = IntoBitIter<T::IntoIter, Msb0>;
+
+    fn into_iter_lsb0(self) -> Self::IterLsb0 {
+        IntoBitIter::from(self.into_iter())
+    }
+
+    fn into_iter_msb0(self) -> Self::IterMsb0 {
+        IntoBitIter::from(self.into_iter())
     }
 }
 
