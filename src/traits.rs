@@ -228,6 +228,7 @@ pub trait StrToBits<'a> {
     /// Converts a bit string into a bit vector.
     ///
     /// The returned vector will contain `true` for any **character** that is not `'0'`,
+    #[cfg(feature = "alloc")]
     fn to_bit_vec(&'a self) -> Vec<bool> {
         self.iter_bits().collect()
     }
