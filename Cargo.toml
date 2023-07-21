@@ -1,6 +1,6 @@
 [package]
 name = "itybity"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["sinui0"]
 description = "An itty bitty crate providing bit iterators and bit iterator accessories."
@@ -19,4 +19,4 @@ rayon = ["std", "dep:rayon"]
 rayon = { version = "1.7", optional = true }
 
 [dev-dependencies]
-rstest = "0.17"
+rstest = "0.18"
