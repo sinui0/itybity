@@ -7,7 +7,6 @@ on:
   pull_request:
 
 jobs:
-
   test:
     name: Test Suite
     runs-on: ubuntu-latest
@@ -17,8 +16,12 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --all-features --workspace
       - name: Run tests
         run: cargo test --all-features --workspace
+      - name: Build no_std
+        run: cargo build --no-default-features --workspace
 
   rustfmt:
     name: Rustfmt
@@ -61,4 +64,3 @@ jobs:
         env:
           RUSTDOCFLAGS: -D warnings
         run: cargo doc --no-deps --document-private-items --all-features --workspace --examples
-

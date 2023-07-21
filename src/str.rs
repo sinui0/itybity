@@ -1,7 +1,10 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-use crate::{FromBitIterator, StrToBits};
+use crate::StrToBits;
+
+#[cfg(feature = "alloc")]
+use crate::FromBitIterator;
 
 /// Iterator over a bit string.
 ///
