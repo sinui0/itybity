@@ -73,6 +73,42 @@ pub trait FromBitIterator {
     fn from_msb0_iter(iter: impl IntoIterator<Item = bool>) -> Self;
 }
 
+macro_rules! impl_from_bit_iterator_tuple {
+    ($($T:ident),+ $(,)?) => {
+        impl<$($T),+> FromBitIterator for ($($T),+ ,)
+        where
+            $($T: FromBitIterator + BitLength),+
+        {
+            fn from_lsb0_iter(iter: impl IntoIterator<Item = bool>) -> Self {
+                let mut iter = iter.into_iter();
+                (
+                    $($T::from_lsb0_iter(iter.by_ref())),+ ,
+                )
+            }
+
+            fn from_msb0_iter(iter: impl IntoIterator<Item = bool>) -> Self {
+                let mut iter = iter.into_iter();
+                (
+                    $($T::from_msb0_iter(iter.by_ref())),+ ,
+                )
+            }
+        }
+    };
+}
+
+impl_from_bit_iterator_tuple!(T1);
+impl_from_bit_iterator_tuple!(T1, T2);
+impl_from_bit_iterator_tuple!(T1, T2, T3);
+impl_from_bit_iterator_tuple!(T1, T2, T3, T4);
+impl_from_bit_iterator_tuple!(T1, T2, T3, T4, T5);
+impl_from_bit_iterator_tuple!(T1, T2, T3, T4, T5, T6);
+impl_from_bit_iterator_tuple!(T1, T2, T3, T4, T5, T6, T7);
+impl_from_bit_iterator_tuple!(T1, T2, T3, T4, T5, T6, T7, T8);
+impl_from_bit_iterator_tuple!(T1, T2, T3, T4, T5, T6, T7, T8, T9);
+impl_from_bit_iterator_tuple!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10);
+impl_from_bit_iterator_tuple!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11);
+impl_from_bit_iterator_tuple!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12);
+
 /// Trait for converting types into a borrowing bit iterator.
 pub trait ToBits<'a> {
     /// The Lsb0 bit iterator type.
@@ -231,5 +267,26 @@ pub trait StrToBits<'a> {
     #[cfg(feature = "alloc")]
     fn to_bit_vec(&'a self) -> Vec<bool> {
         self.iter_bits().collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_bit_iterator_tuple() {
+        let a = 42u8;
+        let b = 69u16;
+
+        let (x, y): (u8, u16) = FromBitIterator::from_lsb0_iter(a.iter_lsb0().chain(b.iter_lsb0()));
+
+        assert_eq!(x, 42);
+        assert_eq!(y, 69);
+
+        let (x, y): (u8, u16) = FromBitIterator::from_msb0_iter(a.iter_msb0().chain(b.iter_msb0()));
+
+        assert_eq!(x, 42);
+        assert_eq!(y, 69);
     }
 }
