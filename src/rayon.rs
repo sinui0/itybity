@@ -292,7 +292,7 @@ where
     }
 }
 
-impl<'a, T, O> ParallelIterator for ParallelBitIterRef<'a, T, O>
+impl<T, O> ParallelIterator for ParallelBitIterRef<'_, T, O>
 where
     T: GetBit<O> + BitLength + Sync,
     O: BitOrder,
@@ -311,7 +311,7 @@ where
     }
 }
 
-impl<'a, T, O> IndexedParallelIterator for ParallelBitIterRef<'a, T, O>
+impl<T, O> IndexedParallelIterator for ParallelBitIterRef<'_, T, O>
 where
     T: GetBit<O> + BitLength + Sync,
     O: BitOrder,
