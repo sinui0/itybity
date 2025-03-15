@@ -27,7 +27,7 @@ impl<'a> From<&'a str> for StrBitIter<'a> {
     }
 }
 
-impl<'a> Iterator for StrBitIter<'a> {
+impl Iterator for StrBitIter<'_> {
     type Item = bool;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -39,7 +39,7 @@ impl<'a> Iterator for StrBitIter<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for StrBitIter<'a> {
+impl DoubleEndedIterator for StrBitIter<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.chars.next_back().map(|c| c != '0')
     }

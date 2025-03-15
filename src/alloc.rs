@@ -21,7 +21,7 @@ where
     }
 }
 
-impl<'a, 'b, T> ToBits<'a> for &'b Vec<T>
+impl<'a, T> ToBits<'a> for &Vec<T>
 where
     &'a T: GetBit<Lsb0> + GetBit<Msb0> + BitLength + 'a,
 {
