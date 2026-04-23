@@ -394,7 +394,7 @@ mod tests {
         };
     }
 
-    impl_fixtures!(u8, u16, u32, u64, u128, usize);
+    impl_fixtures!(u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
 
     #[rstest]
     #[case::u8(PhantomData::<u8>)]
@@ -403,6 +403,12 @@ mod tests {
     #[case::u64(PhantomData::<u64>)]
     #[case::u128(PhantomData::<u128>)]
     #[case::usize(PhantomData::<usize>)]
+    #[case::i8(PhantomData::<i8>)]
+    #[case::i16(PhantomData::<i16>)]
+    #[case::i32(PhantomData::<i32>)]
+    #[case::i64(PhantomData::<i64>)]
+    #[case::i128(PhantomData::<i128>)]
+    #[case::isize(PhantomData::<isize>)]
     fn test_into_par_bit_iter<T>(#[case] _ty: PhantomData<T>)
     where
         T: Fixtures<T> + BitIterable + Clone + Send + Copy + std::fmt::Binary,
@@ -433,6 +439,12 @@ mod tests {
     #[case::u64(PhantomData::<u64>)]
     #[case::u128(PhantomData::<u128>)]
     #[case::usize(PhantomData::<usize>)]
+    #[case::i8(PhantomData::<i8>)]
+    #[case::i16(PhantomData::<i16>)]
+    #[case::i32(PhantomData::<i32>)]
+    #[case::i64(PhantomData::<i64>)]
+    #[case::i128(PhantomData::<i128>)]
+    #[case::isize(PhantomData::<isize>)]
     fn test_to_par_bit_iter_slice<T>(#[case] _ty: PhantomData<T>)
     where
         T: Fixtures<T> + BitIterable + Copy + Sync + std::fmt::Binary,
