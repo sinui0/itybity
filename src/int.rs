@@ -1,6 +1,6 @@
 use crate::{BitIterable, BitLength, FromBitIterator, GetBit, Lsb0, Msb0};
 
-macro_rules! impl_uint_from_bits {
+macro_rules! impl_int_from_bits {
     ($typ:ty) => {
         impl FromBitIterator for $typ {
             fn from_lsb0_iter(iter: impl IntoIterator<Item = bool>) -> Self {
@@ -36,14 +36,20 @@ macro_rules! impl_uint_from_bits {
     };
 }
 
-impl_uint_from_bits!(u8);
-impl_uint_from_bits!(u16);
-impl_uint_from_bits!(u32);
-impl_uint_from_bits!(u64);
-impl_uint_from_bits!(u128);
-impl_uint_from_bits!(usize);
+impl_int_from_bits!(u8);
+impl_int_from_bits!(u16);
+impl_int_from_bits!(u32);
+impl_int_from_bits!(u64);
+impl_int_from_bits!(u128);
+impl_int_from_bits!(usize);
+impl_int_from_bits!(i8);
+impl_int_from_bits!(i16);
+impl_int_from_bits!(i32);
+impl_int_from_bits!(i64);
+impl_int_from_bits!(i128);
+impl_int_from_bits!(isize);
 
-macro_rules! impl_get_bit_uint {
+macro_rules! impl_get_bit_int {
     ($ty:ty) => {
         impl BitLength for $ty {
             const BITS: usize = <$ty>::BITS as usize;
@@ -60,10 +66,8 @@ macro_rules! impl_get_bit_uint {
         impl GetBit<Msb0> for $ty {
             #[inline]
             fn get_bit(&self, index: usize) -> bool {
-                const BIT_MASK: $ty = 1 << (<$ty>::BITS - 1);
-
                 assert!(index < <$ty>::BITS as usize);
-                self & (BIT_MASK >> index) != 0
+                self & (1 << ((<$ty>::BITS as usize - 1) - index)) != 0
             }
         }
 
@@ -71,9 +75,15 @@ macro_rules! impl_get_bit_uint {
     };
 }
 
-impl_get_bit_uint!(u8);
-impl_get_bit_uint!(u16);
-impl_get_bit_uint!(u32);
-impl_get_bit_uint!(u64);
-impl_get_bit_uint!(u128);
-impl_get_bit_uint!(usize);
+impl_get_bit_int!(u8);
+impl_get_bit_int!(u16);
+impl_get_bit_int!(u32);
+impl_get_bit_int!(u64);
+impl_get_bit_int!(u128);
+impl_get_bit_int!(usize);
+impl_get_bit_int!(i8);
+impl_get_bit_int!(i16);
+impl_get_bit_int!(i32);
+impl_get_bit_int!(i64);
+impl_get_bit_int!(i128);
+impl_get_bit_int!(isize);
