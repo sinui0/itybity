@@ -121,12 +121,12 @@
 mod alloc;
 mod array;
 mod bool;
+mod int;
 #[cfg(feature = "rayon")]
 mod rayon;
 mod slice;
 mod str;
 mod traits;
-mod int;
 
 pub use self::str::StrBitIter;
 pub use traits::{
