@@ -15,7 +15,9 @@ No dependencies, no unsafe, and `#![no_std]` compatible.
 This crate provides iterators for iterating over the bits of various types, including integers, slices, and strings.
 These iterators can be conveniently accessed via the provided extension traits, eg `ToBits`, `IntoBits`, and `StrToBits`.
 
-The `FromBits` trait provides implementations for parsing types from bit iterators.
+The `FromBitIterator` trait provides implementations for parsing types from bit iterators.
+
+The `GetBit` and `SetBit` traits provide indexed bit access for types that support it.
 
 ## Performance
 
@@ -104,7 +106,9 @@ assert_eq!(values, [0u8, 1u8, 2u8, 3u8, 0u8]);
 
 `itybity` supports `#[no_std]` by disabling the default features.
 
-- `std`: Enables `alloc`, for use of `Vec` and `String` types.
+- `std`: Enables `alloc`. Enabled by default.
+- `alloc`: Enables use of `Vec` and `String` types in `no_std` contexts.
+- `rayon`: Enables parallel bit iterators via [`rayon`](https://docs.rs/rayon). Implies `std`.
 
 ## License
 

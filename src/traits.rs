@@ -82,17 +82,17 @@ pub trait BitIterable: GetBit<Lsb0> + GetBit<Msb0> + BitLength {}
 impl<T: ?Sized> BitIterable for &T where T: BitIterable {}
 
 /// Trait used for parsing a value from a bit iterator.
+///
+/// For fixed-width types (integers, `bool`), if the iterator yields fewer bits than the type's
+/// width the remaining bits are assumed to be zero, and any bits beyond the type's width are
+/// not consumed from the iterator. For container types (`[T; N]`, `Vec<T>`), bits are consumed
+/// element-by-element until either the container is full or the iterator is exhausted; for
+/// `Vec<T>` the final element may be partially populated with zero high bits.
 pub trait FromBitIterator {
     /// Parses a value from an iterator of bits in Lsb0 order.
-    ///
-    /// If the iterator is shorter than the number of bits in the type, the remaining bits are
-    /// assumed to be zero.
     fn from_lsb0_iter(iter: impl IntoIterator<Item = bool>) -> Self;
 
     /// Parses a value from an iterator of bits in Msb0 order.
-    ///
-    /// If the iterator is shorter than the number of bits in the type, the remaining bits are
-    /// assumed to be zero.
     fn from_msb0_iter(iter: impl IntoIterator<Item = bool>) -> Self;
 }
 

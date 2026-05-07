@@ -9,6 +9,8 @@
 //!
 //! The [`FromBitIterator`] trait provides implementations for parsing types from bit iterators.
 //!
+//! The [`GetBit`] and [`SetBit`] traits provide indexed bit access for types that support it.
+//!
 //! # Performance
 //!
 //! This crate was not designed with performance in mind, but rather simplicity. For a more performant and memory
@@ -38,7 +40,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! itybity = "0.1"
+//! itybity = "0.3"
 //! ```
 //!
 //! # Examples
@@ -96,7 +98,9 @@
 //!
 //! `itybity` supports `#[no_std]` by disabling the default features.
 //!
-//! - `std`: Enables `alloc`, for use of `Vec` and `String` types.
+//! - `std`: Enables `alloc`. Enabled by default.
+//! - `alloc`: Enables use of `Vec` and `String` types in `no_std` contexts.
+//! - `rayon`: Enables parallel bit iterators via [`rayon`](https://docs.rs/rayon). Implies `std`.
 //!
 //! # License
 //!

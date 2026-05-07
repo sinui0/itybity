@@ -45,6 +45,8 @@ impl DoubleEndedIterator for StrBitIter<'_> {
     }
 }
 
+impl core::iter::FusedIterator for StrBitIter<'_> {}
+
 #[cfg(feature = "alloc")]
 impl FromBitIterator for alloc::string::String {
     fn from_lsb0_iter(iter: impl IntoIterator<Item = bool>) -> Self {

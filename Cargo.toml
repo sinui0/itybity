@@ -1,10 +1,12 @@
 [package]
 name = "itybity"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2021"
 authors = ["sinui0"]
 description = "An itty bitty crate providing bit iterators and bit iterator accessories."
 repository = "https://github.com/sinui0/itybity"
+documentation = "https://docs.rs/itybity"
+readme = "README.md"
 license = "MIT OR Apache-2.0"
 categories = ["data-structures", "encoding", "no-std::no-alloc"]
 keywords = ["bit", "iterator", "bitvec", "bitstring", "convert"]
