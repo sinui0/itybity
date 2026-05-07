@@ -130,7 +130,7 @@ mod traits;
 
 pub use self::str::StrBitIter;
 pub use traits::{
-    BitIterable, BitLength, BitOrder, FromBitIterator, GetBit, IntoBitIterator, IntoBits,
+    BitIterable, BitLength, BitOrder, FromBitIterator, GetBit, IntoBitIterator, IntoBits, SetBit,
     StrToBits, ToBits,
 };
 

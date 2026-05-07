@@ -53,6 +53,29 @@ where
     }
 }
 
+/// Trait for setting a bit at a given index.
+pub trait SetBit<O>
+where
+    O: BitOrder,
+{
+    /// Sets the bit at the given index to `value`.
+    ///
+    /// # Panics
+    ///
+    /// Implementations may panic if the provided index is out of bounds.
+    fn set_bit(&mut self, index: usize, value: bool);
+}
+
+impl<T: ?Sized, O> SetBit<O> for &mut T
+where
+    T: SetBit<O>,
+    O: BitOrder,
+{
+    fn set_bit(&mut self, index: usize, value: bool) {
+        T::set_bit(*self, index, value)
+    }
+}
+
 /// A type whose bits can be iterated over.
 pub trait BitIterable: GetBit<Lsb0> + GetBit<Msb0> + BitLength {}
 
